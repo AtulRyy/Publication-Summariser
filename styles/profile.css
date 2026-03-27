@@ -1,0 +1,62 @@
+/* ── PROFILE PANEL ── */
+.profile-overlay { display:none; position:fixed; inset:0; background:rgba(26,24,20,.5); z-index:100; backdrop-filter:blur(3px); }
+.profile-overlay.open { display:flex; align-items:flex-start; justify-content:flex-end; }
+.profile-panel   { background:var(--surface); width:min(520px,100vw); height:100vh; overflow-y:auto; border-left:1px solid var(--border); animation:slideIn .25s ease; }
+.profile-header  { padding:28px 28px 20px; border-bottom:1px solid var(--border); position:sticky; top:0; background:var(--surface); z-index:1; }
+.profile-close   { background:transparent; border:1px solid var(--border); border-radius:3px; padding:6px 12px; font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); cursor:pointer; float:right; transition:all .15s; }
+.profile-close:hover { border-color:var(--accent); color:var(--accent); }
+.profile-avatar  { width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Fraunces',serif; font-size:26px; font-weight:700; margin-bottom:14px; }
+.profile-name    { font-family:'Fraunces',serif; font-size:24px; font-weight:700; color:var(--ink); margin-bottom:4px; }
+.profile-desig   { font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); margin-bottom:6px; }
+.profile-body    { padding:24px 28px; }
+.profile-section { margin-bottom:28px; }
+.profile-section-title { font-family:'DM Mono',monospace; font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:2px; margin-bottom:14px; padding-bottom:6px; border-bottom:1px solid var(--border); }
+
+/* ── PUBLICATION METRICS ── */
+.pub-stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:20px; }
+.pub-stat      { background:var(--surface2); border-radius:3px; padding:12px; text-align:center; }
+.pub-stat-num  { font-family:'Fraunces',serif; font-size:24px; font-weight:700; color:var(--ink); }
+.pub-stat-label{ font-family:'DM Mono',monospace; font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-top:2px; }
+
+/* ── PUBLICATION LIST ── */
+.pub-loading { text-align:center; padding:40px 20px; }
+.pub-dots    { display:inline-flex; gap:4px; }
+.pub-dot     { width:6px; height:6px; background:var(--accent); border-radius:50%; animation:blink .8s infinite; }
+.pub-dot:nth-child(2) { animation-delay:.15s; }
+.pub-dot:nth-child(3) { animation-delay:.3s; }
+.pub-status  { font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); margin-top:10px; }
+
+.pub-controls { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid var(--border); }
+.pub-controls-label { font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); }
+.pub-controls select { font-family:'DM Mono',monospace; font-size:11px; background:var(--surface2); border:1px solid var(--border); border-radius:3px; padding:4px 8px; color:var(--text); cursor:pointer; }
+.pub-controls-shown { font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); margin-left:auto; }
+
+.pub-item    { border:1px solid var(--border); border-radius:3px; padding:14px; margin-bottom:10px; cursor:pointer; transition:border-color .15s; }
+.pub-item:hover { border-color:var(--muted); }
+.pub-title   { font-family:'Fraunces',serif; font-size:14px; font-weight:600; color:var(--ink); margin-bottom:5px; line-height:1.4; }
+.pub-venue   { font-family:'Outfit',sans-serif; font-size:12px; color:var(--accent2); font-style:italic; margin-bottom:6px; }
+.pub-meta-row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.pub-year    { font-family:'DM Mono',monospace; font-size:10px; background:var(--surface2); padding:2px 8px; border-radius:2px; color:var(--ink); }
+.pub-cites   { font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); }
+.pub-ai-hint { margin-left:auto; font-family:'DM Mono',monospace; font-size:9px; color:var(--muted); opacity:.7; }
+
+.pub-type-tag        { font-family:'DM Mono',monospace; font-size:9px; padding:2px 7px; border-radius:2px; text-transform:uppercase; letter-spacing:.5px; }
+.pub-type-journal    { background:#e3f0fd; color:#0d47a1; }
+.pub-type-conference { background:#f3e5f5; color:#4a148c; }
+.pub-type-preprint   { background:#fff3e0; color:#bf360c; }
+.pub-type-other      { background:var(--surface2); color:var(--muted); }
+
+.pub-empty       { text-align:center; padding:40px 20px; color:var(--muted); }
+.pub-empty-icon  { font-size:32px; opacity:.3; margin-bottom:12px; }
+.pub-empty-title { font-family:'Fraunces',serif; font-size:18px; font-style:italic; color:var(--text); }
+.pub-empty-sub   { font-family:'DM Mono',monospace; font-size:11px; margin-top:6px; line-height:1.8; }
+
+.pub-source-note { font-family:'DM Mono',monospace; font-size:9px; color:var(--muted); text-align:center; margin-top:12px; padding:8px; background:var(--surface2); border-radius:2px; }
+
+/* ── TREND CHART ── */
+#trendSection { display:none; }
+.trend-chart-wrap { position:relative; height:200px; margin-top:10px; }
+
+@media(max-width:600px) {
+  .profile-panel { width:100vw; }
+}

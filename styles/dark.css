@@ -1,0 +1,25 @@
+/* ── DARK MODE ── */
+/* Applied by toggling class="dark" on <body> */
+
+body.dark {
+  --bg:      #0f0e0c;
+  --surface: #1a1916;
+  --surface2:#232119;
+  --border:  #2e2c27;
+  --text:    #e8e4dc;
+  --muted:   #6e6a65;
+  --accent:  #e8502a;
+  --accent2: #5b8de8;
+  --ink:     #e8e4dc;
+}
+
+/* Dept tags need explicit dark overrides because they use hardcoded colours */
+body.dark .fc-dept-tag.c-cse   { background:#0d2a4a; color:#5b8de8; }
+body.dark .fc-dept-tag.c-ece   { background:#2a0d3a; color:#b06bd4; }
+body.dark .fc-dept-tag.c-eee   { background:#3a2000; color:#e8952a; }
+body.dark .fc-dept-tag.c-civil { background:#0d2a0d; color:#4caf6e; }
+body.dark .fc-dept-tag.c-mech  { background:#3a0d0d; color:#e87070; }
+
+body.dark .pub-type-journal    { background:#0d2a4a; color:#5b8de8; }
+body.dark .pub-type-conference { background:#2a0d3a; color:#b06bd4; }
+body.dark .pub-type-preprint   { background:#3a2000; color:#e8952a; }

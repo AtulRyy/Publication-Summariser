@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>REVA University — Faculty Research Dashboard</title>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles/base.css">
+  <link rel="stylesheet" href="styles/layout.css">
+  <link rel="stylesheet" href="styles/components.css">
+  <link rel="stylesheet" href="styles/profile.css">
+  <link rel="stylesheet" href="styles/modal.css">
+  <link rel="stylesheet" href="styles/dark.css">
+
+  <!-- Chart.js (CDN, no build step needed) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="container">
+
+  <!-- ── HEADER ── -->
+  <header>
+    <div class="header-row">
+      <div class="logo-block">
+        <div class="logo-uni">Rukmini Knowledge Park · Bengaluru</div>
+        <div class="logo-title">REVA University<br><em>Faculty Research</em> Dashboard</div>
+      </div>
+      <div class="header-meta">
+        <div class="meta-badge">KSCST SPP 49</div>
+        <div class="meta-note" id="lastUpdated">Faculty of Engineering &amp; Technology</div>
+        <button class="dark-toggle" id="darkToggle" onclick="window.__app.toggleDarkMode()">◑ Dark</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── STATS ── -->
+  <div class="stats-row">
+    <div class="stat-card c-total"><div class="stat-num">339</div><div class="stat-label">Total Faculty</div></div>
+    <div class="stat-card c-cse">  <div class="stat-num">157</div><div class="stat-label">CSE</div></div>
+    <div class="stat-card c-ece">  <div class="stat-num">67</div> <div class="stat-label">ECE</div></div>
+    <div class="stat-card c-eee">  <div class="stat-num">25</div> <div class="stat-label">EEE</div></div>
+    <div class="stat-card c-civil"><div class="stat-num">44</div> <div class="stat-label">Civil</div></div>
+    <div class="stat-card c-mech"> <div class="stat-num">46</div> <div class="stat-label">Mechanical</div></div>
+  </div>
+
+  <!-- ── DEPT OVERVIEW ── -->
+  <div class="section-label" style="margin-bottom:12px">Departments — click to filter</div>
+  <div class="dept-grid" id="deptGrid"></div>
+
+  <!-- ── SEARCH ── -->
+  <div class="search-section">
+    <div class="section-label">Search Faculty</div>
+    <div class="search-row">
+      <div class="search-box">
+        <span class="search-icon">⌕</span>
+        <input type="text" id="searchInput" placeholder="Search by name or designation…">
+      </div>
+      <div class="view-toggle">
+        <button class="view-btn active" id="vGrid" onclick="window.__app.setView('grid')">Grid</button>
+        <button class="view-btn"        id="vList" onclick="window.__app.setView('list')">List</button>
+      </div>
+    </div>
+    <div class="dept-filters">
+      <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">Dept:</span>
+      <div class="dept-chip active" data-dept="all"                                            onclick="window.__app.setDept('all',this)">All</div>
+      <div class="dept-chip c-cse"  data-dept="School of Computer Science and Engineering"    onclick="window.__app.setDept(this.dataset.dept,this)">CSE</div>
+      <div class="dept-chip c-ece"  data-dept="School of Electronics and Communication Engineering" onclick="window.__app.setDept(this.dataset.dept,this)">ECE</div>
+      <div class="dept-chip c-eee"  data-dept="School of Electrical and Electronics Engineering"    onclick="window.__app.setDept(this.dataset.dept,this)">EEE</div>
+      <div class="dept-chip c-civil"data-dept="School of Civil Engineering"                   onclick="window.__app.setDept(this.dataset.dept,this)">Civil</div>
+      <div class="dept-chip c-mech" data-dept="School of Mechanical Engineering"              onclick="window.__app.setDept(this.dataset.dept,this)">Mechanical</div>
+    </div>
+    <div class="dept-filters" style="margin-top:8px">
+      <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">Level:</span>
+      <div class="desig-chip active" data-desig="all"                onclick="window.__app.setDesig('all',this)">All</div>
+      <div class="desig-chip"        data-desig="Professor"          onclick="window.__app.setDesig('Professor',this)">Professor</div>
+      <div class="desig-chip"        data-desig="Associate Professor" onclick="window.__app.setDesig('Associate Professor',this)">Associate Prof.</div>
+      <div class="desig-chip"        data-desig="Assistant Professor" onclick="window.__app.setDesig('Assistant Professor',this)">Assistant Prof.</div>
+    </div>
+  </div>
+
+  <!-- ── FACULTY LIST ── -->
+  <div class="results-header">
+    <div class="results-title" id="resultsTitle">All Faculty</div>
+    <div class="results-count" id="resultsCount"></div>
+  </div>
+  <div class="faculty-list" id="facultyList"></div>
+
+</div><!-- /container -->
+
+<!-- ── PROFILE PANEL ── -->
+<div class="profile-overlay" id="profileOverlay" onclick="window.__app.closeProfile(event)">
+  <div class="profile-panel" id="profilePanel">
+    <div class="profile-header">
+      <button class="profile-close" onclick="window.__app.closeProfileBtn()">✕ Close</button>
+      <div class="profile-avatar" id="profAvatar"></div>
+      <div class="profile-name"   id="profName"></div>
+      <div class="profile-desig"  id="profDesig"></div>
+      <span class="fc-dept-tag"   id="profDeptTag"></span>
+    </div>
+    <div class="profile-body">
+
+      <!-- Metrics -->
+      <div class="profile-section">
+        <div class="profile-section-title">Publication Metrics</div>
+        <div class="pub-stats-row">
+          <div class="pub-stat"><div class="pub-stat-num" id="statPubs">—</div><div class="pub-stat-label">Publications</div></div>
+          <div class="pub-stat"><div class="pub-stat-num" id="statCites">—</div><div class="pub-stat-label">Citations</div></div>
+          <div class="pub-stat"><div class="pub-stat-num" id="statH">—</div><div class="pub-stat-label">h-index</div></div>
+        </div>
+      </div>
+
+      <!-- Trend chart (shown after pubs load) -->
+      <div class="profile-section" id="trendSection">
+        <div class="profile-section-title">Publication Trends</div>
+        <div class="trend-chart-wrap"><canvas id="trendChart"></canvas></div>
+      </div>
+
+      <!-- Publications -->
+      <div class="profile-section">
+        <div class="profile-section-title">Publications</div>
+        <div id="pubsContainer">
+          <div class="pub-loading">
+            <div class="pub-dots">
+              <div class="pub-dot"></div><div class="pub-dot"></div><div class="pub-dot"></div>
+            </div>
+            <div class="pub-status">Click below to fetch publications</div>
+          </div>
+        </div>
+        <button class="fc-btn" id="loadPubsBtn"
+                onclick="window.__app.loadPublications()" style="margin-top:10px">
+          ↓ Load Publications from OpenAlex (free)
+        </button>
+        <div class="pub-source-note">
+          Data sourced from OpenAlex · Semantic Scholar — indicative, not Scopus-official
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ── PUBLICATION SUMMARY MODAL ── -->
+<div class="pub-modal-overlay" id="pubModalOverlay" onclick="window.__app.closePubModal(event)">
+  <div class="pub-modal">
+    <div class="pub-modal-topbar">
+      <span class="pub-modal-source">Publication Detail</span>
+      <button class="pub-modal-close" onclick="window.__app.closePubModalBtn()">✕ Close</button>
+    </div>
+    <div class="pub-modal-body">
+      <div class="pub-modal-meta" id="pmMeta"></div>
+      <h2 class="pub-modal-title" id="pmTitle"></h2>
+      <div class="pub-modal-divider"></div>
+      <div class="pub-modal-ai-label">
+        <span class="ai-spark">✦</span> AI Summary
+        <button class="ai-copy-btn" id="aiCopyBtn" onclick="window.__app.copySummary()">Copy</button>
+      </div>
+      <div class="pub-modal-summary" id="pmSummary"></div>
+      <a class="pub-modal-cta" id="pmCta" href="#" target="_blank" rel="noopener">
+        Read Full Publication →
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ── TOAST ── -->
+<div class="toast" id="toast"></div>
+
+<!-- App (ES module — requires an HTTP server, not file://) -->
+<script type="module" src="app.js"></script>
+</body>
+</html>

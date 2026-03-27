@@ -1,0 +1,72 @@
+/* ── CSS CUSTOM PROPERTIES (light theme) ── */
+:root {
+  --bg:      #f7f5f0;
+  --surface: #ffffff;
+  --surface2:#f0ede6;
+  --border:  #e2ddd5;
+  --text:    #1a1814;
+  --muted:   #7a7670;
+  --accent:  #c8391a;
+  --accent2: #1a4fa8;
+  --ink:     #2c2820;
+}
+
+/* ── RESET ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── BASE ── */
+body {
+  background: var(--bg);
+  color:      var(--text);
+  font-family:'Outfit', sans-serif;
+  min-height: 100vh;
+}
+
+/* Subtle grid background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 48px 48px;
+  opacity: .4;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.container {
+  position:   relative;
+  z-index:    1;
+  max-width:  1200px;
+  margin:     0 auto;
+  padding:    0 24px 80px;
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp    { to { opacity: 1; transform: translateY(0); } }
+@keyframes slideIn   { from { transform: translateX(40px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes blink     { 0%,100% { opacity:.3; transform:scale(.8); } 50% { opacity:1; transform:scale(1); } }
+@keyframes modalIn   { from { opacity:0; transform:scale(.95) translateY(12px); } to { opacity:1; transform:scale(1) translateY(0); } }
+@keyframes cursorBlink { 0%,100% { opacity:1; } 50% { opacity:0; } }
+
+/* ── TOAST ── */
+.toast {
+  position:  fixed;
+  bottom:    24px;
+  left:      50%;
+  transform: translateX(-50%) translateY(80px);
+  background:var(--ink);
+  color:     #f7f5f0;
+  border-radius: 3px;
+  padding:   10px 20px;
+  font-family:'DM Mono', monospace;
+  font-size: 11px;
+  z-index:   400;
+  opacity:   0;
+  transition:all .3s;
+  pointer-events:none;
+  white-space:nowrap;
+}
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
