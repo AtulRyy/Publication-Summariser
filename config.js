@@ -1,6 +1,6 @@
 // ── API CONFIG ────────────────────────────────────────────────────
 // Get a free Groq key (14,400 req/day) at https://console.groq.com/keys
-export const GROQ_API_KEY = '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';
+export const GROQ_API_KEY = '__GROQ_API_KEY__'; // injected by CI — see .github/workflows/deploy.yml
 export const GROQ_MODEL   = 'llama-3.1-8b-instant';
 
 // ── DEPARTMENT MAP ────────────────────────────────────────────────
