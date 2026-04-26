@@ -38,3 +38,44 @@
   .pub-modal-body  { padding:16px 18px 22px; }
   .pub-modal-title { font-size:16px; }
 }
+
+/* ── BULK FETCH PROGRESS MODAL ── */
+.bulk-overlay { display:none; position:fixed; inset:0; background:rgba(26,24,20,.78); backdrop-filter:blur(8px); z-index:200; align-items:center; justify-content:center; padding:24px; }
+.bulk-overlay.open { display:flex; }
+
+.bulk-modal { background:var(--surface); border:1px solid var(--border); border-radius:8px; width:min(480px,92vw); box-shadow:0 32px 80px rgba(0,0,0,.28); animation:modalIn .22s ease; overflow:hidden; }
+
+.bulk-header { padding:28px 28px 0; }
+.bulk-title  { font-family:'Fraunces',serif; font-size:22px; font-weight:700; color:var(--ink); margin-bottom:6px; }
+.bulk-sub    { font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); }
+
+.bulk-body   { padding:22px 28px 28px; }
+
+.bulk-track  { height:8px; background:var(--surface2); border-radius:4px; overflow:hidden; margin-top:4px; }
+.bulk-fill   { height:100%; background:var(--accent); border-radius:4px; width:0%; transition:width .35s ease; }
+
+.bulk-progress-label { font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); text-align:right; margin-top:6px; margin-bottom:18px; }
+
+.bulk-current { font-family:'Outfit',sans-serif; font-size:13px; color:var(--text); min-height:22px; margin-bottom:10px; }
+
+.bulk-fun     {
+  font-family:'Fraunces',serif;
+  font-size:15px;
+  font-style:italic;
+  color:var(--muted);
+  min-height:26px;
+  margin-bottom:22px;
+  transition:opacity .3s ease;
+}
+
+.bulk-counts { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:4px; }
+.bulk-badge  { font-family:'DM Mono',monospace; font-size:10px; padding:4px 10px; border-radius:3px; letter-spacing:.3px; }
+.bulk-badge-found { background:#e8f5e9; color:#1b5e20; }
+.bulk-badge-cache { background:#e3f0fd; color:#0d47a1; }
+.bulk-badge-miss  { background:var(--surface2); color:var(--muted); }
+
+.bulk-done-msg { font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); margin-top:12px; padding:10px 14px; background:var(--surface2); border-radius:3px; }
+
+/* dark overrides for badge colours */
+body.dark .bulk-badge-found { background:#0d2a0d; color:#4caf6e; }
+body.dark .bulk-badge-cache { background:#0d2a4a; color:#5b8de8; }

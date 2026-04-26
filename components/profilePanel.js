@@ -1,6 +1,12 @@
 // ── FACULTY PROFILE PANEL ─────────────────────────────────────────
 // Slide-in side panel that shows a faculty member's profile
 // and triggers publication fetching.
+//
+// Load order:
+//   1. Check localStorage cache (cacheGet) — skips API if valid hit
+//   2. OpenAlex  findAuthor + fetchWorks
+//   3. Semantic Scholar findAuthor + fetchPapers (fallback)
+//   4. On success, persist to cache (cacheSet)
 
 import { FACULTY_DATA } from '../data/faculty.js';
 import { DEPT_MAP }     from '../config.js';
@@ -9,6 +15,7 @@ import { cleanName }    from '../utils/text.js';
 import { renderPublications } from './publicationList.js';
 import { findAuthor as oaFindAuthor, fetchWorks } from '../services/openAlex.js';
 import { findAuthor as ssFindAuthor, fetchPapers } from '../services/semanticScholar.js';
+import { cacheGet, cacheSet } from '../services/dataCache.js';
 import { state }        from '../state.js';
 
 /** Open the profile panel for the faculty member at FACULTY_DATA[idx]. */
@@ -16,8 +23,8 @@ export function openProfile(idx) {
   const f = FACULTY_DATA[idx];
   state.currentFaculty = f;
 
-  const d      = DEPT_MAP[f.department] || { short: '—', cls: 'c-cse', color: '#888' };
-  const color  = avatarColor(f.name);
+  const d     = DEPT_MAP[f.department] || { short: '—', cls: 'c-cse', color: '#888' };
+  const color = avatarColor(f.name);
 
   document.getElementById('profAvatar').style.cssText = `background:${color}18;color:${color}`;
   document.getElementById('profAvatar').textContent    = getInitials(f.name);
@@ -28,12 +35,10 @@ export function openProfile(idx) {
   tag.className   = `fc-dept-tag ${d.cls}`;
   tag.textContent = `${d.short} — ${f.department.replace('School of ', '')}`;
 
-  // Reset metrics
   ['statPubs', 'statCites', 'statH'].forEach(id => {
     document.getElementById(id).textContent = '—';
   });
 
-  // Reset pub area
   document.getElementById('pubsContainer').innerHTML = `
     <div class="pub-loading">
       <div class="pub-dots">
@@ -47,6 +52,8 @@ export function openProfile(idx) {
   btn.style.display = 'block';
   btn.textContent   = '↓ Load Publications from OpenAlex';
   btn.disabled      = false;
+
+  document.getElementById('downloadCsvBtn').style.display = 'none';
 
   document.getElementById('profileOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -63,52 +70,92 @@ export function closeProfile(e) {
 
 // ── Publication fetching ──────────────────────────────────────────
 
-/** Main entry point — called by the "Load Publications" button. */
+/** Called by the "Load Publications" button. */
 export async function loadPublications() {
   if (!state.currentFaculty) return;
 
-  const btn = document.getElementById('loadPubsBtn');
-  btn.disabled  = true;
+  const btn  = document.getElementById('loadPubsBtn');
+  const name = cleanName(state.currentFaculty.name);
+
+  // ── 1. Cache check ────────────────────────────────────────────
+  const cached = cacheGet(name);
+  if (cached) {
+    document.getElementById('statH').textContent     = cached.stats?.hIndex  ?? '—';
+    document.getElementById('statCites').textContent = Number(cached.stats?.citedBy || 0).toLocaleString();
+    document.getElementById('statPubs').textContent  = cached.stats?.pubs    ?? '—';
+    _setStatus(`⚡ Loaded from cache · saved ${new Date(cached.savedAt).toLocaleDateString('en-IN')}`);
+    renderPublications(cached.works, cached.source, cached.matchedName);
+    btn.style.display = 'none';
+    document.getElementById('downloadCsvBtn').style.display = '';
+    return;
+  }
+
+  btn.disabled    = true;
   btn.textContent = 'Fetching…';
 
-  const name     = cleanName(state.currentFaculty.name);
   const variants = _nameVariants(name);
 
-  // ── STEP 1: OpenAlex ──────────────────────────────────────────
+  // ── 2. OpenAlex ───────────────────────────────────────────────
   const oaAuthor = await oaFindAuthor(variants, _setStatus);
   if (oaAuthor) {
-    document.getElementById('statH').textContent     = oaAuthor.stats.hIndex     ?? '—';
-    document.getElementById('statCites').textContent = oaAuthor.stats.citedBy.toLocaleString();
-    document.getElementById('statPubs').textContent  = oaAuthor.worksCount;
+    const stats = {
+      pubs:    oaAuthor.worksCount,
+      citedBy: oaAuthor.stats.citedBy,
+      hIndex:  oaAuthor.stats.hIndex,
+    };
+    document.getElementById('statH').textContent     = stats.hIndex ?? '—';
+    document.getElementById('statCites').textContent = Number(stats.citedBy || 0).toLocaleString();
+    document.getElementById('statPubs').textContent  = stats.pubs;
 
     _setStatus(`Found: ${oaAuthor.authorName} — fetching works…`);
     try {
       const works = await fetchWorks(oaAuthor.authorId, _setStatus);
       if (works.length > 0) {
+        cacheSet(name, {
+          faculty:     state.currentFaculty,
+          works,
+          stats,
+          source:      'OpenAlex',
+          matchedName: oaAuthor.authorName,
+        });
         renderPublications(works, 'OpenAlex', oaAuthor.authorName);
         btn.style.display = 'none';
+        document.getElementById('downloadCsvBtn').style.display = '';
         return;
       }
-      _setStatus(`Author found but 0 works returned — trying Semantic Scholar…`);
+      _setStatus('Author found but 0 works returned — trying Semantic Scholar…');
     } catch (e) {
       console.error('Works fetch error:', e);
       _setStatus('Works fetch failed — trying Semantic Scholar…', e.message);
     }
   }
 
-  // ── STEP 2: Semantic Scholar fallback ─────────────────────────
+  // ── 3. Semantic Scholar fallback ──────────────────────────────
   const ssAuthor = await ssFindAuthor(variants, _setStatus);
   if (ssAuthor) {
-    document.getElementById('statPubs').textContent  = ssAuthor.stats.paperCount;
-    document.getElementById('statCites').textContent = ssAuthor.stats.citationCount.toLocaleString();
-    document.getElementById('statH').textContent     = ssAuthor.stats.hIndex ?? '—';
+    const stats = {
+      pubs:    ssAuthor.stats.paperCount,
+      citedBy: ssAuthor.stats.citationCount,
+      hIndex:  ssAuthor.stats.hIndex,
+    };
+    document.getElementById('statPubs').textContent  = stats.pubs;
+    document.getElementById('statCites').textContent = Number(stats.citedBy || 0).toLocaleString();
+    document.getElementById('statH').textContent     = stats.hIndex ?? '—';
 
     _setStatus(`Found on Semantic Scholar: ${ssAuthor.authorName} — fetching papers…`);
     try {
       const works = await fetchPapers(ssAuthor.authorId);
       if (works.length > 0) {
+        cacheSet(name, {
+          faculty:     state.currentFaculty,
+          works,
+          stats,
+          source:      'Semantic Scholar',
+          matchedName: ssAuthor.authorName,
+        });
         renderPublications(works, 'Semantic Scholar', ssAuthor.authorName);
         btn.style.display = 'none';
+        document.getElementById('downloadCsvBtn').style.display = '';
         return;
       }
     } catch (e) {
@@ -116,7 +163,7 @@ export async function loadPublications() {
     }
   }
 
-  // ── Not found ─────────────────────────────────────────────────
+  // ── 4. Not found ──────────────────────────────────────────────
   document.getElementById('pubsContainer').innerHTML = `
     <div class="pub-empty">
       <div class="pub-empty-icon">○</div>

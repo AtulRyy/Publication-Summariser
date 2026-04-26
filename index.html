@@ -84,8 +84,18 @@
 
   <!-- ── FACULTY LIST ── -->
   <div class="results-header">
-    <div class="results-title" id="resultsTitle">All Faculty</div>
-    <div class="results-count" id="resultsCount"></div>
+    <div>
+      <div class="results-title" id="resultsTitle">All Faculty</div>
+      <div class="results-count" id="resultsCount"></div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <button class="fc-btn" id="btnDlDept"
+              onclick="window.__app.downloadDeptCSV()"
+              style="display:none;width:auto">↓ Dept CSV</button>
+      <button class="fc-btn"
+              onclick="window.__app.downloadAllFacultyCSV()"
+              style="width:auto">↓ All Faculty CSV</button>
+    </div>
   </div>
   <div class="faculty-list" id="facultyList"></div>
 
@@ -134,6 +144,11 @@
                 onclick="window.__app.loadPublications()" style="margin-top:10px">
           ↓ Load Publications from OpenAlex (free)
         </button>
+        <button class="fc-btn" id="downloadCsvBtn"
+                onclick="window.__app.downloadCurrentFacultyCSV()"
+                style="display:none;margin-top:6px">
+          ↓ Download Publications CSV
+        </button>
         <div class="pub-source-note">
           Data sourced from OpenAlex · Semantic Scholar — indicative, not Scopus-official
         </div>
@@ -163,6 +178,40 @@
         Read Full Publication →
       </a>
     </div>
+  </div>
+</div>
+
+<!-- ── BULK FETCH PROGRESS MODAL ── -->
+<div class="bulk-overlay" id="bulkOverlay">
+  <div class="bulk-modal">
+
+    <div class="bulk-header">
+      <div class="bulk-title">Gathering publication data</div>
+      <div class="bulk-sub">Fetching records for <strong id="bulkTotal">—</strong> faculty members</div>
+    </div>
+
+    <div class="bulk-body">
+      <div class="bulk-track">
+        <div class="bulk-fill" id="bulkProgressFill"></div>
+      </div>
+      <div class="bulk-progress-label" id="bulkProgressLabel">0 / —</div>
+
+      <div class="bulk-current" id="bulkCurrentFaculty">Starting…</div>
+      <div class="bulk-fun" id="bulkFunLine">Consulting the oracle of academic papers…</div>
+
+      <div class="bulk-counts">
+        <span class="bulk-badge bulk-badge-found">✓ <span id="bsFound">0</span> found</span>
+        <span class="bulk-badge bulk-badge-cache">⚡ <span id="bsCache">0</span> cached</span>
+        <span class="bulk-badge bulk-badge-miss">○ <span id="bsNotFound">0</span> not found</span>
+      </div>
+
+      <div class="bulk-done-msg" id="bulkDoneMsg" style="display:none"></div>
+
+      <button class="fc-btn" id="bulkActionBtn"
+              onclick="window.__app.cancelBulkFetch()"
+              style="margin-top:20px;width:auto">Cancel</button>
+    </div>
+
   </div>
 </div>
 

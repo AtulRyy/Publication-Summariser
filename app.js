@@ -14,13 +14,15 @@ import { applyPubFilters }                 from './components/publicationList.js
 import { renderTrendChart }               from './components/trendChart.js';
 import { showToast }                      from './utils/dom.js';
 import { normalizeDesig }                 from './utils/text.js';
+import { exportFacultyPubs, exportDeptStats, exportAllStats } from './utils/csv.js';
+import { openBulkModal, closeBulkModal } from './components/bulkFetchModal.js';
 
 // ── Filter logic ──────────────────────────────────────────────────
 
 function applyFilters() {
   const q = state.searchQuery.toLowerCase();
 
-  let list = FACULTY_DATA.filter(f => {
+  const list = FACULTY_DATA.filter(f => {
     const matchDept  = state.activeDept  === 'all' || f.department === state.activeDept;
     const matchDesig = state.activeDesig === 'all' || normalizeDesig(f.designation).includes(state.activeDesig);
     const matchQ     = !q
@@ -40,22 +42,30 @@ function applyFilters() {
 }
 
 // ── Global API (called from HTML onclick attributes) ──────────────
-// Keeping inline event handlers is fine for a no-bundler project,
-// but we isolate them to one namespace to avoid global pollution.
 
 window.__app = {
   // Filters
   setDept(dept, el) {
     state.activeDept = dept;
     document.querySelectorAll('.dept-chip').forEach(c => c.classList.remove('active'));
-    // el may be a dept-card or dept-chip
     const chip = document.querySelector(`.dept-chip[data-dept="${CSS.escape(dept)}"]`);
     if (chip) chip.classList.add('active');
     if (!chip) {
-      // clicked from dept-card — activate the matching chip
       const allChip = document.querySelector('.dept-chip[data-dept="all"]');
       if (dept === 'all' && allChip) allChip.classList.add('active');
     }
+
+    // Show/hide department CSV button
+    const deptBtn = document.getElementById('btnDlDept');
+    if (deptBtn) {
+      if (dept !== 'all') {
+        deptBtn.style.display = '';
+        deptBtn.textContent   = `↓ ${DEPT_MAP[dept]?.short || 'Dept'} CSV`;
+      } else {
+        deptBtn.style.display = 'none';
+      }
+    }
+
     applyFilters();
   },
 
@@ -105,6 +115,33 @@ window.__app = {
   },
 
   showToast,
+
+  // CSV exports
+  downloadCurrentFacultyCSV() {
+    if (!state.currentFaculty || !state.allLoadedWorks.length) {
+      showToast('No publications loaded — click "Load Publications" first.');
+      return;
+    }
+    exportFacultyPubs(state.currentFaculty, state.allLoadedWorks);
+  },
+
+  downloadDeptCSV() {
+    if (state.activeDept === 'all') {
+      showToast('Select a department first.');
+      return;
+    }
+    const deptFaculty = FACULTY_DATA.filter(f => f.department === state.activeDept);
+    openBulkModal(deptFaculty, () => exportDeptStats(state.activeDept));
+  },
+
+  downloadAllFacultyCSV() {
+    openBulkModal(FACULTY_DATA, () => exportAllStats());
+  },
+
+  cancelBulkFetch() {
+    closeBulkModal(true);
+    showToast('Downloading partial data — resumable next time via cache.');
+  },
 };
 
 // ── Keyboard shortcuts ────────────────────────────────────────────
@@ -116,7 +153,7 @@ document.getElementById('searchInput').addEventListener('input', e => {
 
 document.getElementById('searchInput').addEventListener('keydown', e => {
   if (e.key === 'Escape') {
-    e.target.value  = '';
+    e.target.value   = '';
     state.searchQuery = '';
     applyFilters();
   }
@@ -138,7 +175,6 @@ applyFilters();
 document.getElementById('lastUpdated').textContent =
   `${FACULTY_DATA.length} faculty · Engineering & Technology`;
 
-// Restore dark mode preference
 if (localStorage.getItem('revaDashDark') === '1') {
   document.body.classList.add('dark');
   document.getElementById('darkToggle').textContent = '☀ Light';
